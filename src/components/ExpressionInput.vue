@@ -36,14 +36,18 @@
     </div>
     <!-- <span style="color: #fff;">{{ activeExpression ?? 'NULL' }}</span> -->
     <div v-show="activeExpression" class="autocomplete-wrapper">
-      <AutocompleteView :model="autocomplete" v-model:selected="selected" :active-expression="realActiveExpression" @update:active-expression="onUpdateActiveExpression" :listen-to-keyboard="listenToKeyboard" />
+      <AutocompleteView :model="autocomplete" v-model:selected="selected" :active-expression="realActiveExpression" @update:active-expression="onUpdateActiveExpression" :listen-to-keyboard="listenToKeyboard">
+        <template v-if="slots.tutorial" #tutorial="{ selectedItem }">
+          <slot name="tutorial" :selected-item="selectedItem" />
+        </template>
+      </AutocompleteView>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import CodeFlask from 'codeflask'
-import { onMounted, watch, ref, computed, Ref, reactive, watchEffect, provide } from 'vue'
+import { onMounted, watch, ref, computed, Ref, reactive, watchEffect, provide, useSlots } from 'vue'
 import { NSwitch, NTabs, NTab, NIcon, useThemeVars, NTooltip, NTag } from 'naive-ui'
 import { EyeOutline, CodeOutline, AlertCircleOutline } from '@vicons/ionicons5'
 //import { ExpressionController, parseExpr, SimpleExpression, findClosestExpression, findExactMatchingExpression, SimpleExpressionCallWithName, SimpleExpressionIdentifier, SimpleExpressionIdentifierExpression, SimpleExpressionIdentifierStatic } from '../controllers/expression'
@@ -75,6 +79,8 @@ const props = withDefaults(defineProps<{
 });
 
 const emit = defineEmits(['update:model-value', 'update:error']);
+
+const slots = useSlots();
 
 const theme = useThemeVars();
 

@@ -79,6 +79,21 @@ export function retrieveExpression(obj: AutocompleteItem | AutocompleteTab, path
   }
 }
 
+export function retrieveExpressionsTree(objs: (AutocompleteItem | AutocompleteTab)[], path: number[]): (AutocompleteItem | AutocompleteTab | undefined)[] {
+  const currChild = objs[path[0]];
+  return [
+    currChild,
+    ...(() => {
+      if (currChild?.type !== 'divider' && currChild?.children) {
+        return retrieveExpressionsTree(currChild.children, path.slice(1));
+      }
+      else {
+        return [];
+      }
+    })()
+  ];
+}
+
 export function useAutocompleteShortcuts(selectedItemPath: Ref<number[]>, tabs: Ref<AutocompleteTab[]>, listenToKeyboard: Ref<boolean>) {
   function moveSelection (steps: number) {
     //const newTopLevel = selectedItemPath.value[selectedItemPath.value.length - 1] + steps;

@@ -18,7 +18,13 @@
               <n-button v-if="selectedItem?.type === 'expression'" type="default" round size="small" @click="handleUpdateClick">Update</n-button>
             </n-space>
           </div>
+          <div v-if="slots.tutorial" class="tutorial-wrapper">
+            <n-scrollbar>
+              <slot name="tutorial" :selected-item="selectedItem" />
+            </n-scrollbar>
+          </div>
         </div>
+        
       </n-tab-pane>
       <n-tab-pane name="value" tab="Value">
         <ValueView :expression="activeExpression" @update:expression="onUpdateExpression" />
@@ -29,7 +35,7 @@
 
 
 <script setup lang="ts">
-import { provide, ref, watchEffect, computed, watch, toRef, inject, Ref } from 'vue'
+import { provide, ref, watchEffect, computed, watch, toRef, inject, Ref, useSlots } from 'vue'
 import { AutocompleteItem, AutocompleteItemWithPath, AutocompleteTab, useAutocompleteShortcuts, retrieveExpression, expressionIdentifierToAutocompleteIdentifier, getMemberNames, autocompleteIdentifierToExpressionIdentifier } from '../controllers/autocomplete'
 import { NTabs, NTab, NTabPane, NButton, NSpace, NScrollbar } from 'naive-ui'
 import AutocompleteTree from './AutocompleteTree.vue'
@@ -46,6 +52,8 @@ const props = defineProps<{
   listenToKeyboard: boolean;
 }>();
 const emit = defineEmits(['update:selected', 'update:active-expression']);
+
+const slots = useSlots();
 
 
 const isDarkMode = inject('isDarkMode') as Ref<boolean>;
@@ -204,7 +212,13 @@ const smartExpressionWidget = computed(() => {
     .n-tab-pane {
       overflow: hidden;
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
+      // .identifier-view-wrapper {
+      //   flex: 1;
+      // }
+      // .tutorial-wrapper {
+      //   flex: none;
+      // }
     }
   }
 }
@@ -225,9 +239,11 @@ const smartExpressionWidget = computed(() => {
 .identifier-view-wrapper {
   // display: flex;
   // flex-direction: column;
+  flex: 1;
   display: grid;
   grid-template-columns: 100%;
-  grid-template-rows: 100%;
+  grid-template-columns: auto max-content;
+  grid-template-rows: auto 48px;
   gap: 0px;
   //row-gap: 10px;
   //border-top: 1px solid rgba(0, 0, 0, 0.1);
@@ -240,13 +256,22 @@ const smartExpressionWidget = computed(() => {
     grid-column: 1 / span 1;
     grid-row: 1 / span 2;
   }
+  .tutorial-wrapper {
+    grid-column: 2 / span 1;
+    grid-row: 1 / span 1;
+  }
   .actions {
+    display: grid;
+    place-items: center end;
+    pointer-events: none;
     // grid-column: 1 / span 1;
     // grid-row: 2 / span 1;
     // padding-right: 50px;
-    position: absolute;
-    bottom: 0px;
-    right: 0px;
+    grid-row: 2 / span 1;
+    grid-column: 2 / span 1;
+    .n-button {
+      pointer-events: all;
+    }
   }
   .n-tab-pane {
     display: flex;
