@@ -10,18 +10,18 @@ export const actions = ['delete', 'duplicate', 'moveNext', 'movePrev'];
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { SimpleExpressionIdentifier, SimpleExpressionIdentifierStatic, SimpleExpressionIdentifierExpression } from '../../controllers/expression'
+import { Expression as CoreExpression} from '@bluepic/core'
 import GeneralExpression from './GeneralExpression.vue'
 import IdentifierChain from './IdentifierChain.vue';
 
 const props = defineProps<{
-  identifier: SimpleExpressionIdentifier['identifier'];
+  identifier: CoreExpression.SimpleExpressionIdentifier['identifier'];
   active: boolean;
 }>();
 const emit = defineEmits(['update:identifier', 'select']);
 
 const identifierSafe = computed(() => {
-  return props.identifier.filter(identifier => identifier !== undefined) as (SimpleExpressionIdentifierStatic | SimpleExpressionIdentifierExpression)[];
+  return props.identifier.filter(identifier => identifier !== undefined) as (CoreExpression.SimpleExpressionIdentifierStatic | CoreExpression.SimpleExpressionIdentifierExpression)[];
 });
 
 const select = () => {

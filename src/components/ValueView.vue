@@ -33,7 +33,7 @@
 <script setup lang="ts">
 import { NTabs, NTabPane, NSpace, NButton, NCard } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
-import { ExpressionController, parseExpr, SimpleExpression } from '../controllers/expression'
+import { Expression as CoreExpression } from '@bluepic/core'
 import NumberWidget from './ValueWidgets/NumberWidget.vue'
 import StringWidget from './ValueWidgets/StringWidget.vue'
 import BooleanWidget from './ValueWidgets/BooleanWidget.vue'
@@ -42,7 +42,7 @@ import ObjectWidget from './ValueWidgets/ObjectWidget.vue'
 type ValueTypes = 'number' | 'string' | 'boolean' | 'object' | 'null' | 'undefined' | 'bigint' | 'symbol' | 'function';
 
 const props = defineProps<{
-  expression: SimpleExpression | undefined;
+  expression: CoreExpression.SimpleExpression | undefined;
 }>();
 const emit = defineEmits(['update:expression']);
 
@@ -113,7 +113,7 @@ const boolProxy = computed({
 const objProxy = computed({
   get() {
     if (props.expression?.type === 'Object') {
-      return ExpressionController.toString(props.expression);
+      return CoreExpression.ExpressionController.toString(props.expression);
     }
   },
   set(newValue) {
@@ -128,7 +128,7 @@ watch(currNewValue, () => {
 });
 const updateValue = () => {
   const exprStr = props.expression?.type === 'Object' ? `(${ currNewValue.value })` : JSON.stringify(currNewValue.value);
-  const expr = parseExpr(exprStr);
+  const expr = CoreExpression.parseExpr(exprStr);
   emit('update:expression', expr);
 }
 

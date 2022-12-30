@@ -1,7 +1,7 @@
 <template>
-  <div class="object" :class="{ active }" @click="select">
-    <div class="object-inner">
-      <span>OBJECT</span>
+  <div class="unparsed" :class="{ active }" @click="select">
+    <div class="unparsed-inner">
+      <span>UNPARSED</span>
     </div>
   </div>
 </template>
@@ -11,16 +11,13 @@ export const actions = ['delete', 'duplicate', 'moveNext', 'movePrev'];
 </script>
 
 <script setup lang="ts">
-import { Expression as CoreExpression } from '@bluepic/core'
+import { Expression, SpreadElement } from 'estree'
 
 
 const props = defineProps<{
   active: boolean;
-  properties: {
-    key: string;
-    value: CoreExpression.SimpleExpression;
-    range?: [number, number];
-  }[];
+  estreeExpression: Expression | SpreadElement;
+  raw?: string;
 }>();
 const emit = defineEmits(['select']);
 
@@ -31,9 +28,9 @@ const select = () => {
 </script>
 
 <style scoped lang="scss">
-.object {
+.unparsed {
   --background-color: rgb(238, 197, 107);
-  .object-inner {
+  .unparsed-inner {
     background-color: var(--background-color);
     border-radius: 15px;
     height: var(--height);
@@ -42,7 +39,7 @@ const select = () => {
     place-items: center;
   }
 }
-.object.active {
+.unparsed.active {
   --background-color: rgb(209, 173, 96);
 }
 

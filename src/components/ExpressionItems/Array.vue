@@ -34,7 +34,7 @@ export const actions = ['delete', 'duplicate', 'toFunction', 'moveNext', 'movePr
 
 
 <script setup lang="ts">
-import { SimpleExpression, ExpressionController } from '../../controllers/expression'
+import { Expression as CoreExpression } from '@bluepic/core'
 import GeneralExpression from './GeneralExpression.vue';
 import { ref, Ref, inject } from 'vue'
 import useDrag from './controllers/drag'
@@ -42,7 +42,7 @@ import hash from '../../util/hash'
 
 const props = defineProps<{
   active: boolean;
-  items: SimpleExpression[];
+  items: CoreExpression.SimpleExpression[];
   state?: string;
 }>();
 const emit = defineEmits(['select', 'sortable:change', 'sortable:update', 'sortable:add', 'sortable:remove']);

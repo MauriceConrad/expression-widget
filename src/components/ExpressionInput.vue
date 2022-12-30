@@ -1,15 +1,28 @@
 <template>
-  <div class="expression-input" :class="{ 'dark-mode': isDarkMode }">
+  <div class="expression-input" :class="{ 'dark-mode': isDarkMode }" :style="{ '--fixed-width': `${ width }px`, '--font-size': `${ fontSize }px`, '--smart-expression-font-size': `${ smartFontSize }px`, '--smart-expression-height': `${ smartHeight }px`, '--smart-expression-text-offset-y': `${ smartTextOffset }px`, '--seperator-offset-y': `${ seperatorOffset }px` }">
     <div class="main-input-wrapper">
       <div class="actions-wrapper">
         <!-- <n-switch :value="mode === 'ux'" @update:value="mode = $event ? 'ux' : 'text'" /> -->
+        <!-- <n-tooltip v-if="error" placement="bottom-end">
+          <template #trigger>
+            <div class="error-tooltip">
+              <n-icon>
+                <alert-circle-outline />
+              </n-icon>
+            </div>
+          </template>
+          ({{ error.index }}) {{  error.description  }}
+        </n-tooltip> -->
+        <n-tag v-if="error" type="error" size="small" class="error-tooltip">
+          [{{ error.index }}] {{ error.description  }}
+        </n-tag>
         <n-tabs type="segment" :size="('tiny' as any)" v-model:value="mode">
           <n-tab name="text">
             <n-icon>
               <code-outline />
             </n-icon>
           </n-tab>
-          <n-tab name="ux">
+          <n-tab name="ux" :disabled="!!error">
             <n-icon>
               <eye-outline />
             </n-icon>
@@ -21,8 +34,9 @@
         <ExpressionWidget v-if="expression" ref="expressionWidget" :model-value="expression" @update:model-value="syncCode" v-model:active-expression="activeExpression" />
       </div>
     </div>
+    <!-- <span style="color: #fff;">{{ activeExpression ?? 'NULL' }}</span> -->
     <div v-show="activeExpression" class="autocomplete-wrapper">
-      <AutocompleteView :model="autocomplete" v-model:selected="selected" :active-expression="activeExpression" @update:active-expression="onUpdateActiveExpression" :listen-to-keyboard="listenToKeyboard" />
+      <AutocompleteView :model="autocomplete" v-model:selected="selected" :active-expression="realActiveExpression" @update:active-expression="onUpdateActiveExpression" :listen-to-keyboard="listenToKeyboard" />
     </div>
   </div>
 </template>
@@ -30,21 +44,27 @@
 <script setup lang="ts">
 import CodeFlask from 'codeflask'
 import { onMounted, watch, ref, computed, Ref, reactive, watchEffect, provide } from 'vue'
-import { NSwitch, NTabs, NTab, NIcon, useThemeVars } from 'naive-ui'
-import { EyeOutline, CodeOutline } from '@vicons/ionicons5'
-import { ExpressionController, parseExpr, SimpleExpression, findClosestExpression, findExactMatchingExpression, SimpleExpressionCallWithName, SimpleExpressionIdentifier, SimpleExpressionIdentifierExpression, SimpleExpressionIdentifierStatic } from '../controllers/expression'
+import { NSwitch, NTabs, NTab, NIcon, useThemeVars, NTooltip, NTag } from 'naive-ui'
+import { EyeOutline, CodeOutline, AlertCircleOutline } from '@vicons/ionicons5'
+//import { ExpressionController, parseExpr, SimpleExpression, findClosestExpression, findExactMatchingExpression, SimpleExpressionCallWithName, SimpleExpressionIdentifier, SimpleExpressionIdentifierExpression, SimpleExpressionIdentifierStatic } from '../controllers/expression'
 //import jsep from 'jsep'
 import ExpressionWidget from './ExpressionWidget.vue'
 import _ from 'lodash'
 import { expressionIdentifierToAutocompleteIdentifier, AutocompleteTab } from '../controllers/autocomplete'
 import AutocompleteView from './AutocompleteView.vue'
 import color from 'color'
-import { emit } from 'process'
+import { Expression as CoreExpression } from '@bluepic/core'
 
 const props = withDefaults(defineProps<{
   modelValue: string;
   autocomplete: AutocompleteTab[];
   max?: number;
+  width?: number;
+  fontSize: number;
+  smartFontSize: number;
+  smartHeight: number;
+  smartTextOffset: number;
+  seperatorOffset: number;
   evalExpression?: (expr: string) => any;
   //darkMode?: boolean;
 }>(), {
@@ -54,7 +74,7 @@ const props = withDefaults(defineProps<{
   }
 });
 
-const emit = defineEmits(['update:model-value']);
+const emit = defineEmits(['update:model-value', 'update:error']);
 
 const theme = useThemeVars();
 
@@ -69,8 +89,22 @@ provide('isDarkMode', isDarkMode);
 const inputWrapperRef = ref<HTMLDivElement>();
 const flask = ref<CodeFlask>();
 
-const expression = ref<SimpleExpression>();
-const activeExpression = ref<SimpleExpression>();
+const expression = ref<CoreExpression.SimpleExpression>();
+const activeExpression = ref<CoreExpression.SimpleExpression>();
+const activeExpressionPath = ref<number[]>();
+watch(activeExpression, (newActiveExpr) => {
+  if (newActiveExpr && expression.value) {
+    const validPath = CoreExpression.ExpressionController.getExpressionPath(newActiveExpr, expression.value);
+    if (validPath) {
+      activeExpressionPath.value = validPath;
+    }
+  }
+});
+const realActiveExpression = computed(() => {
+  if (activeExpressionPath.value && expression.value) {
+    return CoreExpression.ExpressionController.retrieveExpressionByPath(activeExpressionPath.value, expression.value);
+  }
+});
 
 const expressionWidget = ref<InstanceType<typeof ExpressionWidget>>();
 
@@ -89,20 +123,41 @@ const syncUX = computed(() => {
   return true;
 });
 
+const error = ref<{
+  index: number;
+  description: string;
+}>();
+watchEffect(() => {
+  emit('update:error', error.value);
+});
+
+
 const syncExpression = () => {  
   if (syncUX.value) {
-    const newExpr = parseExpr(code.value);
-    if (!_.isEqual(newExpr, expression.value)) {
-      expression.value = newExpr;
+    try {
+      const newExpr = CoreExpression.parseExpr(code.value);
+      error.value = undefined;
+      if (!_.isEqual(newExpr, expression.value)) {
+        expression.value = newExpr;
+      }
+    }
+    catch (err) {
+      console.error(err);
+      
+      error.value = {
+        index: (err as any).index,
+        description: (err as any).description
+      }
+      
     }
   }
 }
 watch(code, syncExpression);
 
 
-const syncCode = (newExpr: SimpleExpression) => {
+const syncCode = (newExpr: CoreExpression.SimpleExpression) => {
   if (syncText.value && flask.value) {
-    const newCode = ExpressionController.toString(newExpr);
+    const newCode = CoreExpression.ExpressionController.toString(newExpr);
     if (code.value !== newCode) {
       code.value = newCode;
       flask.value.updateCode(code.value);
@@ -116,35 +171,47 @@ const selection = reactive({
   direction: 'forward'
 });
 
-const listenToKeyboard = ref(true);
-
+const rawIsFocus = ref(false);
+const listenToKeyboard = computed(() => !rawIsFocus.value);
 
 onMounted(() => {
   if (inputWrapperRef.value) {
     flask.value = new CodeFlask(inputWrapperRef.value, {
       language: 'js',
-      defaultTheme: true
+      defaultTheme: false
     });
     const textarea = inputWrapperRef.value?.querySelector('.codeflask__textarea') as HTMLTextAreaElement | null;
     flask.value.onUpdate(currCode => {
-      flask.value?.updateCode(currCode.replaceAll(/\n/g, ' '));
-      const finalCurrCode = flask.value?.getCode();
-      if (finalCurrCode && finalCurrCode !== code.value) {
-        code.value = finalCurrCode;
+
+
+      const safeCode = currCode.replaceAll(/\n/g, ' ');
+      if (safeCode !== currCode) {
+        flask.value?.updateCode(safeCode);
+        return;
+      }
+
+      // flask.value?.updateCode(currCode.replaceAll(/\n/g, ' '));
+      
+      // const finalCurrCode = flask.value?.getCode();
+      // if (finalCurrCode !== currCode) {
+      //   return;
+      // }
+      if (currCode !== code.value) {
+        code.value = currCode;
       }
       //expression.value = parseExpr(code);
     });
     
     if (textarea) {
       textarea.addEventListener('focus', () => {
-        listenToKeyboard.value = false;
+        rawIsFocus.value = true;
       });
       textarea.addEventListener('blur', () => {
-        listenToKeyboard.value = true;
+        rawIsFocus.value = false;
       });
       textarea.addEventListener('click', (event) => {
         if (event.altKey && expression.value) {
-          const closestExpression = findClosestExpression(expression.value, textarea.selectionStart, textarea.selectionEnd);
+          const closestExpression = CoreExpression.findClosestExpression(expression.value, textarea.selectionStart, textarea.selectionEnd);
           if (closestExpression?.type !== 'Unparsed' && closestExpression?.range) {
             textarea.setSelectionRange(closestExpression?.range[0], closestExpression?.range[1], 'forward');
           }
@@ -166,14 +233,13 @@ onMounted(() => {
       }
       checkSelectionRange();
       const updateActiveElementFromSelection = () => {
-        if (expression.value) {
-          const closestExpression = findExactMatchingExpression(expression.value, textarea.selectionStart, textarea.selectionEnd);
+        if (mode.value === 'text' && rawIsFocus.value && expression.value) {
+          const closestExpression = CoreExpression.findExactMatchingExpression(expression.value, textarea.selectionStart, textarea.selectionEnd);
           if (closestExpression) {
             activeExpression.value = closestExpression;
           }
           else {
             activeExpression.value = undefined;
-            
           }
         }
         
@@ -198,7 +264,7 @@ onMounted(() => {
 const selected = ref<number[]>([0]);
 
 
-const onUpdateActiveExpression = (newActiveExpression: SimpleExpression) => {
+const onUpdateActiveExpression = (newActiveExpression: CoreExpression.SimpleExpression) => {
   if (activeExpression.value) {
     if (mode.value == 'ux') {
       if (expressionWidget.value && expressionWidget.value.expressionController) {
@@ -207,12 +273,21 @@ const onUpdateActiveExpression = (newActiveExpression: SimpleExpression) => {
     }
     else if (flask.value && activeExpression.value.type !== 'Unparsed' && activeExpression.value.range) {
       const code = flask.value.getCode();
-      flask.value.updateCode(`${ code.slice(0, activeExpression.value.range[0]) }${ ExpressionController.toString(newActiveExpression) }${ code.slice(activeExpression.value.range[1]) }`)
+      if (realActiveExpression.value) {
+        
+        if (realActiveExpression && realActiveExpression.value.type !== 'Unparsed' && realActiveExpression.value.range) {
+          flask.value.updateCode(`${ code.slice(0, realActiveExpression.value.range[0]) }${ CoreExpression.ExpressionController.toString(newActiveExpression) }${ code.slice(realActiveExpression.value.range[1]) }`);
+        }
+      }
+      
+      //console.log('!!!', ExpressionController.toString(newActiveExpression));
+      
+      
     }
   }
 }
 
-provide('evalExpression', (expr: SimpleExpression) => {
+provide('evalExpression', (expr: CoreExpression.SimpleExpression) => {
   if (expr.type !== 'Unparsed' && expr.range) {
     return props.evalExpression(code.value.slice(expr.range[0], expr.range[1]));
   }
@@ -225,20 +300,26 @@ watch(code, (newCode) => {
   emit('update:model-value', newCode);
 });
 
+
+defineExpose({
+  error
+});
 </script>
 
 
 <style scoped lang="scss">
 .expression-input {
-  --main-width: 600px;
-  width: var(--main-width);
+  // --main-width: var(var(--fixed-width), 250px);
+  // width: var(--main-width);
+  width: auto;
   height: auto;
-  padding: 10px;
-  --smart-expression-height: 26px;
-  --smart-expression-text-offset-y: 1px;
-  --seperator-offset-y: 5px;
-  --font-size: 14px;
-  --smart-expression-font-size: 11px;
+  padding: 0px;
+  // max-height: 400px;
+  //--smart-expression-height: 26px;
+  //--smart-expression-text-offset-y: 1px;
+  //--seperator-offset-y: 5px;
+  //--font-size: 18px;
+  //--smart-expression-font-size: 11px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -247,6 +328,7 @@ watch(code, (newCode) => {
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
+    paddb
     .autocomplete-view {
       
       // box-sizing: border-box;
@@ -260,9 +342,25 @@ watch(code, (newCode) => {
       grid-row: 1 / span 1;
       grid-column: 1 / span 1;
       display: grid;
-      grid-template-columns: auto 50px;
-      .n-tabs {
+      gap: 5px;
+      grid-template-columns: auto max-content 50px;
+      .error-tooltip {
         grid-column: 2 / span 1;
+        display: grid;
+        place-items: center;
+        height: 20px;
+        .n-icon {
+          font-size: 18px;
+          color: rgb(237, 67, 67);
+        }
+      }
+      .n-tabs {
+        grid-column: 3 / span 1;
+        ::v-deep(.n-tabs-tab[data-disabled='true']) {
+          .n-tabs-tab__label {
+            opacity: 0.5;
+          }
+        }
       }
       padding-bottom: 5px;
     }
@@ -271,6 +369,7 @@ watch(code, (newCode) => {
       grid-column: 1 / span 1;
       margin-bottom: 4px;
       overflow: scroll;
+      white-space: nowrap;
       -ms-overflow-style: none;  /* IE and Edge */
       scrollbar-width: none;  /* Firefox */
     }
@@ -280,29 +379,36 @@ watch(code, (newCode) => {
     .smart-wrapper {
       display: flex;
       align-items: center;
+      padding-left: 1px;
+      padding-bottom: 5px !important;
     }
     .input-wrapper {
-      --width: var(--main-width);
+      //--width: var(--main-width);
       ::v-deep(.codeflask) {
-        width: var(--width) !important;
+        //width: var(--width) !important;
       }
     }
     .input-wrapper.hidden {
       visibility: hidden;
     }
   }
+  ::v-deep(.n-card) {
+    background-color: rgba(0, 0, 0, 0.1) !important;
+  }
 }
 .input-wrapper {
-  --width: 100%;
+  //--width: 100%;
   //--height: 200px;
   // --font-size: 32px;
   --line-height: 1.1;
-  --padding-x: 10px;
+  --padding-x: 0px;
   --padding-y: 10px;
   --height: calc(var(--font-size) * var(--line-height) + var(--padding-y) * 2);
   // width: var(--width);
   height: var(--height);
   font-family: monospace;
+  display: flex;
+
   ::v-deep(.codeflask) {
     background-color: transparent;
     // width: var(--width) !important;

@@ -52,13 +52,13 @@
 
 
 <script setup lang="ts">
-import { SimpleExpressionIdentifier, SimpleExpressionIdentifierStatic, SimpleExpressionIdentifierExpression } from '../../controllers/expression'
+import { Expression as CoreExpression } from '@bluepic/core'
 import { computed } from 'vue'
 import { LinkOutline } from '@vicons/ionicons5'
 import GeneralExpression from './GeneralExpression.vue'
 
 const props = withDefaults(defineProps<{
-  members: SimpleExpressionIdentifier['identifier'];
+  members: CoreExpression.SimpleExpressionIdentifier['identifier'];
   head?: boolean;
   active: boolean;
   color?: string;
@@ -74,7 +74,7 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits(['select']);
 const identifierSafe = computed(() => {
-  return props.members.filter(identifier => identifier !== undefined) as (SimpleExpressionIdentifierStatic | SimpleExpressionIdentifierExpression)[];
+  return props.members.filter(identifier => identifier !== undefined) as (CoreExpression.SimpleExpressionIdentifierStatic | CoreExpression.SimpleExpressionIdentifierExpression)[];
 });
 
 const preventSelect = (event: MouseEvent) => {

@@ -1,6 +1,6 @@
 import { onMounted, ref, Ref, WritableComputedRef } from 'vue'
 import Sortable, { MultiDrag, Swap } from 'sortablejs'
-import { ExpressionController, retrieveExpressionChilds, SimpleExpression } from '../../../controllers/expression'
+import { Expression as CoreExpression } from '@bluepic/core'
 import uniqid from 'uniqid'
 import _ from 'lodash'
 
@@ -38,13 +38,13 @@ export default function useDrag(listRef: Ref<HTMLDivElement | undefined>, opts: 
   }
 }
 
-export function useSortableEvents(expression: Ref<SimpleExpression>, expressionController: Ref<ExpressionController>, activeExpression: Ref<SimpleExpression | undefined>) {
+export function useSortableEvents(expression: Ref<CoreExpression.SimpleExpression>, expressionController: Ref<CoreExpression.ExpressionController>, activeExpression: Ref<CoreExpression.SimpleExpression | undefined>) {
   const localState = ref(uniqid());
 
   const handleSortableChoose = (event: Sortable.SortableEvent) => {
     //expressionController.value.draggingExpressions = 
     if (event.oldIndex !== undefined) {
-      const childExpression = retrieveExpressionChilds(expression.value)[event.oldIndex];
+      const childExpression = CoreExpression.retrieveExpressionChilds(expression.value)[event.oldIndex];
       expressionController.value.draggingExpression = childExpression;
     }
     else {
@@ -61,7 +61,7 @@ export function useSortableEvents(expression: Ref<SimpleExpression>, expressionC
   }
   const handleSortableUpdate = (event: Sortable.SortableEvent) => {
     if (event.newIndex !== undefined && event.oldIndex !== undefined) {
-      const childExpression = retrieveExpressionChilds(expression.value)[event.oldIndex];
+      const childExpression = CoreExpression.retrieveExpressionChilds(expression.value)[event.oldIndex];
       const oldActiveExpression = activeExpression.value;
       expressionController.value.moveTo(childExpression, event.newIndex);
       //localState.value = uniqid();

@@ -38,7 +38,7 @@
         </template>
       </ul>
     </div>
-    <AutocompleteTree v-if="itemWhichIsSubPathOfSelectedPath?.type !== 'divider' && itemWhichIsSubPathOfSelectedPath?.children" :items="itemWhichIsSubPathOfSelectedPath?.children" class="autocomplete-tree" />
+    <AutocompleteTree v-if="itemWhichIsSubPathOfSelectedPath?.type !== 'divider' && itemWhichIsSubPathOfSelectedPath?.children && itemWhichIsSubPathOfSelectedPath?.children.length > 0" :items="itemWhichIsSubPathOfSelectedPath?.children" class="autocomplete-tree" />
   </div>
 </template>
 
@@ -48,7 +48,7 @@ import { ChevronForwardOutline } from '@vicons/ionicons5';
 import { computed, inject, Ref, watch, ref, watchEffect } from 'vue'
 import { AutocompleteItemWithPath, autocompleteIdentifierToExpressionIdentifier } from '../controllers/autocomplete'
 import { NIcon } from 'naive-ui'
-import { SimpleExpression } from '../controllers/expression';
+import { Expression as CoreExpression } from '@bluepic/core'
 
 const props = defineProps<{
   items: AutocompleteItemWithPath[];
@@ -77,10 +77,10 @@ const itemWhichIsSubPathOfSelectedPath = computed(() => {
   });
 });
 
-const activeExpression = inject('activeExpression') as Ref<SimpleExpression | undefined>;
+const activeExpression = inject('activeExpression') as Ref<CoreExpression.SimpleExpression | undefined>;
 const replaceExpressionWithAutocompleteItem = inject('replaceExpressionWithAutocompleteItem') as (item: AutocompleteItemWithPath) => void;
 
-const onUpdateExpression = inject('onUpdateExpression') as (expr: SimpleExpression) => void;
+const onUpdateExpression = inject('onUpdateExpression') as (expr: CoreExpression.SimpleExpression) => void;
 const handleDblclick = (event: MouseEvent, item: AutocompleteItemWithPath) => {
   replaceExpressionWithAutocompleteItem(item);
   event.preventDefault();
@@ -117,10 +117,13 @@ const handleDblclick = (event: MouseEvent, item: AutocompleteItemWithPath) => {
 
 <style scoped lang="scss">
 .autocomplete-tree {
-  display: inline-grid;
+  display: inline-block;
+  vertical-align: top;
   grid-template-columns: auto auto;
-  overflow: hidden;
+  //overflow: hidden;
   .items-list {
+    display: inline-block;
+    vertical-align: top;
     min-width: 100px;
     max-width: var(--sub-menu-max-width);
     > ul {

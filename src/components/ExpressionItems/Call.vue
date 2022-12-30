@@ -23,7 +23,7 @@ export const actions = ['delete', 'duplicate', 'moveNext', 'movePrev'];
 
 <script setup lang="ts">
 import { watchEffect, computed, ref, onMounted, Ref, inject, toRef } from 'vue'
-import { SimpleExpression, SimpleExpressionIdentifier, ExpressionController } from '../../controllers/expression'
+import { Expression as CoreExpression } from '@bluepic/core'
 import GeneralExpression from './GeneralExpression.vue'
 import IdentifierChain from './IdentifierChain.vue'
 import useDrag from './controllers/drag'
@@ -31,8 +31,8 @@ import hash from '../../util/hash'
 
 const props = defineProps<{
   body?: string;
-  identifier?: SimpleExpressionIdentifier['identifier'];
-  arguments: SimpleExpression[];
+  identifier?: CoreExpression.SimpleExpressionIdentifier['identifier'];
+  arguments: CoreExpression.SimpleExpression[];
   active: boolean;
   state?: string;
 }>();

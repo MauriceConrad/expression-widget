@@ -6,6 +6,7 @@
     <Call v-else-if="modelValue.type === 'Call'" :state="localState" :body="(modelValue as any).body" :identifier="(modelValue as any).identifier" :arguments="modelValue.arguments" :active="active" class="expression-component" @select="handleSelect" @sortable:choose="handleSortableChoose" @sortable:unchoose="handleSortableUnchoose" @sortable:update="handleSortableUpdate" @sortable:add="handleSortableAdd" @sortable:remove="handleSortableRemove" />
     <Object v-else-if="modelValue.type === 'Object'" :properties="modelValue.properties" :active="active" class="expression-component" @select="handleSelect" />
     <Array v-else-if="modelValue.type === 'Array'" :state="localState" :items="modelValue.items" :active="active" class="expression-component" @select="handleSelect" />
+    <Unparsed v-else-if="modelValue.type === 'Unparsed'" :raw="modelValue.raw" :estree-expression="modelValue.estreeExpression" :active="active" class="expression-component" @select="handleSelect" />
     <div v-if="active" class="active-indicator" />
     <n-dropdown placement="bottom-start" trigger="manual" :x="dropdownPos.x" :y="dropdownPos.y" :options="dropdownOptions" :show="showDropdown" @clickoutside="handleDropdownClickOutside" @select="handleDropdopwnSelect" />
     <n-tooltip :show="showEvaluatedExpressionTooltip" placement="bottom-start" trigger="manual" class="general-expression-evaluated-value-tooltip" :class="{ error: evaluationError }">
@@ -20,13 +21,14 @@
 
 <script setup lang="ts">
 import { inject, Ref, computed, reactive, ref, toRef, onUnmounted } from 'vue'
-import { SimpleExpression, ExpressionController, retrieveExpressionChilds } from '../../controllers/expression'
+import { Expression as CoreExpression } from '@bluepic/core'
 import Operation, { actions as OperationActions } from './Operation.vue'
 import Literal, { actions as LiteralActions } from './Literal.vue'
 import Identifier, { actions as IdentifierActions } from './Identifier.vue'
 import Call, { actions as CallActions } from './Call.vue'
 import Object, { actions as ObjectActions } from './Object.vue'
 import Array, { actions as ArrayActions } from './Array.vue'
+import Unparsed, { actions as UnparsedActions } from './Unparsed.vue'
 import { NDropdown, NTooltip } from 'naive-ui'
 import renderIcon from '../../util/renderIcon'
 import { ArrowBackOutline, ArrowForwardOutline, CopyOutline, RefreshOutline, TrashOutline } from '@vicons/ionicons5'
@@ -39,19 +41,20 @@ const actions = {
   'Call': CallActions,
   'Object': ObjectActions,
   'Array': ArrayActions,
+  'Unparsed': UnparsedActions
 }
 
 const props = defineProps<{
-  modelValue: SimpleExpression;
+  modelValue: CoreExpression.SimpleExpression;
 }>();
 const emit = defineEmits(['update:model-value']);
 
-const activeExpression = inject('activeExpression') as Ref<SimpleExpression | undefined>;
-const expressionController = inject('expressionController') as Ref<ExpressionController>;
+const activeExpression = inject('activeExpression') as Ref<CoreExpression.SimpleExpression | undefined>;
+const expressionController = inject('expressionController') as Ref<CoreExpression.ExpressionController>;
 
 const isDarkMode = inject('isDarkMode') as Ref<Boolean>;
 
-const evalExpression = inject('evalExpression') as (expression: SimpleExpression) => any;
+const evalExpression = inject('evalExpression') as (expression: CoreExpression.SimpleExpression) => any;
 
 
 const altKey = ref(false);
@@ -104,7 +107,7 @@ const showDropdown = ref(false);
 const dropdownPos = reactive({ x: 0, y: 0 });
 const dropdownOptions = computed(() => {
   const parentExpression = expressionController.value.getParentExpression(props.modelValue);
-  const parentExpressionChilds = parentExpression ? retrieveExpressionChilds(parentExpression) : [];
+  const parentExpressionChilds = parentExpression ? CoreExpression.retrieveExpressionChilds(parentExpression) : [];
   return [
     {
       key: 'moveNext',
@@ -225,6 +228,7 @@ const { handleSortableChoose, handleSortableUnchoose, handleSortableChange, hand
     height: var(--height);
   }
   .active-indicator {
+    display: none;
     width: 100%;
     height: 1px;
     background-color: #333;
@@ -235,13 +239,13 @@ const { handleSortableChoose, handleSortableUnchoose, handleSortableChange, hand
     background-color: rgba(255, 255, 255, 0.746);
   }
 }
-.general-expression.context-menu-active:not(.active) {
+.general-expression.context-menu-active, .general-expression.active {
   filter: brightness(0.85);
   outline: 1px solid rgba(0, 0, 0, 0.401);
 }
-.general-expression.context-menu-active:not(.active).dark-mode {
+.general-expression.context-menu-active.dark-mode, .general-expression.active.dark-mode {
   filter: brightness(0.85);
-  outline: 1px solid rgba(255, 255, 255, 0.85);
+  outline: 1px solid rgba(255, 255, 255, 0.65);
 }
 .identifier-chain:after {
   width: 100%;

@@ -53,12 +53,12 @@ export const actions = ['delete', 'duplicate', 'toFunction', 'moveNext', 'movePr
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { SimpleExpression } from '../../controllers/expression'
+import { Expression as CoreExpression } from '@bluepic/core'
 import GeneralExpression from './GeneralExpression.vue'
 
 
 const props = defineProps<{
-  operands: SimpleExpression[];
+  operands: CoreExpression.SimpleExpression[];
   operator: string;
   active: boolean;
 }>();

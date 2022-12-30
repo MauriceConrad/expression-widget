@@ -1,11 +1,11 @@
 import { computed, onUnmounted, Ref } from 'vue'
-import { SimpleExpression, SimpleExpressionCall, SimpleExpressionCallWithName, SimpleExpressionIdentifier, SimpleExpressionIdentifierExpression, SimpleExpressionIdentifierStatic } from './expression'
+import { Expression as CoreExpression } from '@bluepic/core'
 
-type SimpleExpressionIdentifierMember = SimpleExpressionIdentifierStatic | SimpleExpressionIdentifierExpression;
+export type SimpleExpressionIdentifierMember = CoreExpression.SimpleExpressionIdentifierStatic | CoreExpression.SimpleExpressionIdentifierExpression;
 
-type IdentifierMemberString = { type: 'static', value: string | number; };
-type IdentifierMemberIdentifier = { type: 'identifier', identifier: IdentifierMember[]; };
-type IdentifierMember = IdentifierMemberString | IdentifierMemberIdentifier;
+export type IdentifierMemberString = { type: 'static', value: string | number; };
+export type IdentifierMemberIdentifier = { type: 'identifier', identifier: IdentifierMember[]; };
+export type IdentifierMember = IdentifierMemberString | IdentifierMemberIdentifier;
 
 export type AutocompleteTab = {
   type: 'tab',
@@ -21,7 +21,7 @@ export type AutocompleteItemFunction = {
   label: string;
   maxArguments: number;
   minArguments: number;
-  argumentsResolver: (oldExpression: SimpleExpression | undefined) => SimpleExpression[];
+  argumentsResolver: (oldExpression: CoreExpression.SimpleExpression | undefined) => CoreExpression.SimpleExpression[];
   children?: AutocompleteItem[];
 }
 export type AutocompleteItemIdentifier = {
@@ -139,7 +139,7 @@ export function useAutocompleteShortcuts(selectedItemPath: Ref<number[]>, tabs: 
 }
 
 
-export function expressionIdentifierToAutocompleteIdentifier(identifier: (SimpleExpressionIdentifierExpression | SimpleExpressionIdentifierStatic)[]): IdentifierMember[] {
+export function expressionIdentifierToAutocompleteIdentifier(identifier: (CoreExpression.SimpleExpressionIdentifierExpression | CoreExpression.SimpleExpressionIdentifierStatic)[]): IdentifierMember[] {
   return identifier.map(member => {
     if (member.type === 'static') {
       return { type: 'static', value: member.name };
@@ -155,7 +155,7 @@ export function expressionIdentifierToAutocompleteIdentifier(identifier: (Simple
         }
       }
       else if (member.expression.type === 'Identifier') {
-        return { type: 'identifier', identifier: expressionIdentifierToAutocompleteIdentifier(member.expression.identifier.filter(member => member !== undefined) as (SimpleExpressionIdentifierExpression | SimpleExpressionIdentifierStatic)[]) }
+        return { type: 'identifier', identifier: expressionIdentifierToAutocompleteIdentifier(member.expression.identifier.filter(member => member !== undefined) as (CoreExpression.SimpleExpressionIdentifierExpression | CoreExpression.SimpleExpressionIdentifierStatic)[]) }
       }
       else {
         throw new Error('Identifier member expression is not of type Literal or Identifier');
@@ -165,13 +165,14 @@ export function expressionIdentifierToAutocompleteIdentifier(identifier: (Simple
   })
   
 }
-export function autocompleteIdentifierToExpressionIdentifier(identifier: IdentifierMember[], expressionType: 'function' | 'identifier', funcArguments: SimpleExpression[]): SimpleExpressionIdentifier | SimpleExpressionCallWithName {
-  const idMemberToIdentifier = (member: IdentifierMember): SimpleExpressionIdentifierExpression | SimpleExpressionIdentifierStatic => {
+export function autocompleteIdentifierToExpressionIdentifier(identifier: IdentifierMember[], expressionType: 'function' | 'identifier', funcArguments: CoreExpression.SimpleExpression[]): CoreExpression.SimpleExpressionIdentifier | CoreExpression.SimpleExpressionCallWithName {
+  const idMemberToIdentifier = (member: IdentifierMember): CoreExpression.SimpleExpressionIdentifierExpression | CoreExpression.SimpleExpressionIdentifierStatic => {
     if (member.type === 'static') {
       if (typeof member.value === 'string') {
         return {
           type: 'static',
-          name: member.value
+          name: member.value,
+          call: false
         }
       }
       else {

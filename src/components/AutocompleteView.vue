@@ -2,7 +2,7 @@
   <div class="autocomplete-view" :class="{ 'dark-mode': isDarkMode }">
     <n-tabs v-model:value="valueType" type="segment">
       <n-tab-pane name="identifier" tab="Identifier">
-        <div class="identifier-view-wrapper" :class="{ 'show-smart-expression-widget': smartExpressionWidget }">
+        <div class="identifier-view-wrapper" :class="{ 'show-smart-expression-widget': smartExpressionWidget, 'show-actions': selectedItem?.type === 'expression' }">
           <n-tabs :value="selctedItemPath[0]" @update:value="selctedItemPath = [$event]">
             <n-tab-pane v-for="{ name, children }, index in tabs" :key="name" :tab="name" :name="index">
               <div class="tab-inner">
@@ -35,14 +35,14 @@ import { NTabs, NTab, NTabPane, NButton, NSpace, NScrollbar } from 'naive-ui'
 import AutocompleteTree from './AutocompleteTree.vue'
 import _ from 'lodash'
 import ValueView from './ValueView.vue'
-import { SimpleExpression, SimpleExpressionCallWithName, SimpleExpressionIdentifier, SimpleExpressionIdentifierExpression, SimpleExpressionIdentifierStatic } from '../controllers/expression'
+import { Expression as CoreExpression } from '@bluepic/core'
 
 import BBoxWidget, { isValid as isValidBBox } from './SmartExpressionWidgets/BBoxWidget.vue'
 
 const props = defineProps<{
   model: AutocompleteTab[];
   selected: number[];
-  activeExpression: SimpleExpression | undefined;
+  activeExpression: CoreExpression.SimpleExpression | undefined;
   listenToKeyboard: boolean;
 }>();
 const emit = defineEmits(['update:selected', 'update:active-expression']);
@@ -114,7 +114,7 @@ const selectActiveExpressionWithinAutocompleteView = () => {
   
   if (activeExpression.value?.type === 'Identifier' || activeExpression.value?.type === 'Call') {
     valueType.value = 'identifier';
-    const identifier = (activeExpression.value as SimpleExpressionCallWithName | SimpleExpressionIdentifier).identifier.filter(member => member !== undefined) as (SimpleExpressionIdentifierExpression | SimpleExpressionIdentifierStatic)[];
+    const identifier = (activeExpression.value as CoreExpression.SimpleExpressionCallWithName | CoreExpression.SimpleExpressionIdentifier).identifier.filter(member => member !== undefined) as (CoreExpression.SimpleExpressionIdentifierExpression | CoreExpression.SimpleExpressionIdentifierStatic)[];
     try {
       const autocompleteIdentifier = expressionIdentifierToAutocompleteIdentifier(identifier);
       const autocompleteExpression = allAutocompleteItems.value.find(item => {
@@ -145,7 +145,7 @@ watch(activeExpression, selectActiveExpressionWithinAutocompleteView);
 
 provide('activeExpression', activeExpression);
 
-const onUpdateExpression = (activeExpression: SimpleExpression) => {
+const onUpdateExpression = (activeExpression: CoreExpression.SimpleExpression) => {
   emit('update:active-expression', activeExpression);
 }
 
@@ -223,23 +223,37 @@ const smartExpressionWidget = computed(() => {
   }
 }
 .identifier-view-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  // display: flex;
+  // flex-direction: column;
+  display: grid;
+  grid-template-columns: 100%;
+  grid-template-rows: 100%;
+  gap: 0px;
+  //row-gap: 10px;
+  //border-top: 1px solid rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  position: relative;
   > * {
     overflow: hidden;
   }
   .n-tabs {
     grid-column: 1 / span 1;
-    grid-row: 1 / span 1;
+    grid-row: 1 / span 2;
+  }
+  .actions {
+    // grid-column: 1 / span 1;
+    // grid-row: 2 / span 1;
+    // padding-right: 50px;
+    position: absolute;
+    bottom: 0px;
+    right: 0px;
   }
   .n-tab-pane {
     display: flex;
     flex-direction: column;
     .tab-inner {
       overflow: scroll;
+      white-space: nowrap;
     }
     .tab-inner::-webkit-scrollbar {
       display: none;
@@ -254,6 +268,13 @@ const smartExpressionWidget = computed(() => {
     grid-row: 2 / span 1;
     grid-column: 1 / span 2;
     overflow: hidden;
+  }
+}
+.identifier-view-wrapper.show-actions {
+  .n-tab-pane {
+    .tab-inner {
+      padding-bottom: 30px;
+    } 
   }
 }
 .identifier-view-wrapper.show-smart-expression-widget {
