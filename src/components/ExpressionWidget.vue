@@ -13,11 +13,14 @@ import uniqid from 'uniqid'
 
 const props = defineProps<{
   modelValue: CoreExpression.SimpleExpression;
+  editableHandle: (expr: CoreExpression.SimpleExpression, path: number[] | undefined) => boolean;
   //activeExpression: SimpleExpression | undefined;
 }>();
 const emit = defineEmits(['update:model-value', 'update:active-expression']);
 
 const renderState = ref(uniqid());
+
+provide('editableHandle', props.editableHandle);
 
 const expressionController = ref<CoreExpression.ExpressionController>();
 const initExpressionController = () => {

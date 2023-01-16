@@ -31,7 +31,7 @@
       </div>
       <div ref="inputWrapperRef" class="input-wrapper" :class="{ hidden: mode === 'ux' }" />
       <div v-if="mode === 'ux'" class="smart-wrapper">
-        <ExpressionWidget v-if="expression" ref="expressionWidget" :model-value="expression" @update:model-value="syncCode" v-model:active-expression="activeExpression" />
+        <ExpressionWidget v-if="expression" ref="expressionWidget" :model-value="expression" @update:model-value="syncCode" v-model:active-expression="activeExpression" :editable-handle="editableHandle" />
       </div>
     </div>
     <!-- <span style="color: #fff;">{{ activeExpression ?? 'NULL' }}</span> -->
@@ -69,13 +69,15 @@ const props = withDefaults(defineProps<{
   smartHeight: number;
   smartTextOffset: number;
   seperatorOffset: number;
+  editableHandle: (expr: CoreExpression.SimpleExpression, path: number[] | undefined) => boolean;
   evalExpression?: (expr: string) => any;
   //darkMode?: boolean;
 }>(), {
   max: Infinity,
   evalExpression: (expr: string) => {
     return 42;
-  }
+  },
+  editableHandle: () => true
 });
 
 const emit = defineEmits(['update:model-value', 'update:error']);

@@ -1,12 +1,12 @@
 <template>
-  <div ref="wrapperRef" class="general-expression" :class="{ active, 'context-menu-active': showDropdown, 'dark-mode': isDarkMode }" @contextmenu="handleContextmenu">
-    <Operation v-if="modelValue.type === 'Operation'" :operands="modelValue.operands" :operator="modelValue.operator" :active="active" class="expression-component" @select="handleSelect" />
-    <Literal v-else-if="modelValue.type === 'Literal'" :raw="modelValue.raw" :value="modelValue.value" :active="active" class="expression-component" @select="handleSelect" />
-    <Identifier v-else-if="modelValue.type === 'Identifier'" :identifier="modelValue.identifier" :active="active" class="expression-component" @select="handleSelect" />
-    <Call v-else-if="modelValue.type === 'Call'" :state="localState" :body="(modelValue as any).body" :identifier="(modelValue as any).identifier" :arguments="modelValue.arguments" :active="active" class="expression-component" @select="handleSelect" @sortable:choose="handleSortableChoose" @sortable:unchoose="handleSortableUnchoose" @sortable:update="handleSortableUpdate" @sortable:add="handleSortableAdd" @sortable:remove="handleSortableRemove" />
-    <Object v-else-if="modelValue.type === 'Object'" :properties="modelValue.properties" :active="active" class="expression-component" @select="handleSelect" />
-    <Array v-else-if="modelValue.type === 'Array'" :state="localState" :items="modelValue.items" :active="active" class="expression-component" @select="handleSelect" />
-    <Unparsed v-else-if="modelValue.type === 'Unparsed'" :raw="modelValue.raw" :estree-expression="modelValue.estreeExpression" :active="active" class="expression-component" @select="handleSelect" />
+  <div ref="wrapperRef" class="general-expression" :class="{ active, 'context-menu-active': showDropdown, 'dark-mode': isDarkMode, 'disabled': !isEnabled }" @contextmenu="handleContextmenu">
+    <Operation v-if="modelValue.type === 'Operation'" :operands="modelValue.operands" :operator="modelValue.operator" :active="active" class="expression-component" :class="{ disabled: !isEnabled }" @select="handleSelect" />
+    <Literal v-else-if="modelValue.type === 'Literal'" :raw="modelValue.raw" :value="modelValue.value" :active="active" class="expression-component" :class="{ disabled: !isEnabled }" @select="handleSelect" />
+    <Identifier v-else-if="modelValue.type === 'Identifier'" :identifier="modelValue.identifier" :active="active" class="expression-component" :class="{ disabled: !isEnabled }" @select="handleSelect" />
+    <Call v-else-if="modelValue.type === 'Call'" :state="localState" :body="(modelValue as any).body" :identifier="(modelValue as any).identifier" :arguments="modelValue.arguments" :active="active" class="expression-component" :class="{ disabled: !isEnabled }" @select="handleSelect" @sortable:choose="handleSortableChoose" @sortable:unchoose="handleSortableUnchoose" @sortable:update="handleSortableUpdate" @sortable:add="handleSortableAdd" @sortable:remove="handleSortableRemove" />
+    <Object v-else-if="modelValue.type === 'Object'" :properties="modelValue.properties" :active="active" class="expression-component" :class="{ disabled: !isEnabled }" @select="handleSelect" />
+    <Array v-else-if="modelValue.type === 'Array'" :state="localState" :items="modelValue.items" :active="active" class="expression-component" :class="{ disabled: !isEnabled }" @select="handleSelect" />
+    <Unparsed v-else-if="modelValue.type === 'Unparsed'" :raw="modelValue.raw" :estree-expression="modelValue.estreeExpression" :active="active" class="expression-component" :class="{ disabled: !isEnabled }" @select="handleSelect" />
     <div v-if="active" class="active-indicator" />
     <n-dropdown placement="bottom-start" trigger="manual" :x="dropdownPos.x" :y="dropdownPos.y" :options="dropdownOptions" :show="showDropdown" @clickoutside="handleDropdownClickOutside" @select="handleDropdopwnSelect" />
     <n-tooltip :show="showEvaluatedExpressionTooltip" placement="bottom-start" trigger="manual" class="general-expression-evaluated-value-tooltip" :class="{ error: evaluationError }">
@@ -99,8 +99,13 @@ const showEvaluatedExpressionTooltip = computed(() => altKey.value && active.val
 
 const wrapperRef = ref<HTMLDivElement>();
 
+const editableHandle = inject('editableHandle') as (expr: CoreExpression.SimpleExpression, path: number[] | undefined) => boolean;
+const isEnabled = computed(() => editableHandle(props.modelValue, expressionController.value.getExpressionPath(props.modelValue)));
+
 const handleSelect = () => {
-  activeExpression.value = props.modelValue;
+  if (isEnabled.value) {
+    activeExpression.value = props.modelValue; 
+  }
 }
 
 const showDropdown = ref(false);
@@ -187,16 +192,18 @@ const handleDropdownClickOutside = (event: MouseEvent) => {
 }
 
 const handleContextmenu = (event: MouseEvent) => {
-  event.preventDefault();
-  event.stopPropagation();
+  if (isEnabled.value) {
+    event.preventDefault();
+    event.stopPropagation();
 
-  const x = event.clientX;//wrapperRef.value ? wrapperRef.value.getBoundingClientRect().left : event.clientX;
-  const y = wrapperRef.value ? wrapperRef.value.getBoundingClientRect().bottom : event.clientY;
+    const x = event.clientX;//wrapperRef.value ? wrapperRef.value.getBoundingClientRect().left : event.clientX;
+    const y = wrapperRef.value ? wrapperRef.value.getBoundingClientRect().bottom : event.clientY;
 
 
-  dropdownPos.x = x;
-  dropdownPos.y = y;
-  showDropdown.value = true;
+    dropdownPos.x = x;
+    dropdownPos.y = y;
+    showDropdown.value = true; 
+  }
 }
 
 
@@ -238,6 +245,9 @@ const { handleSortableChoose, handleSortableUnchoose, handleSortableChange, hand
   .active-indicator {
     background-color: rgba(255, 255, 255, 0.746);
   }
+}
+.general-expression.disabled {
+  
 }
 .general-expression.context-menu-active, .general-expression.active {
   filter: brightness(0.85);

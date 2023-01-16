@@ -141,7 +141,24 @@ const { sortable } = useDrag(argumentsListRef, {
     }
   }
 }
-
+.call.disabled {
+  ::v-deep(> .identifier-chain) {
+    > .member {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    > .head {
+      > .head-start {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      > .head-end {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
 </style>
 
 <style lang="scss">
