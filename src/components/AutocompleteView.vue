@@ -209,10 +209,15 @@ const smartExpressionWidget = computed(() => {
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    width: 100%;
     .n-tab-pane {
       overflow: hidden;
       display: flex;
       flex-direction: row;
+      > .value-view {
+        flex: 1;
+      }
+
       // .identifier-view-wrapper {
       //   flex: 1;
       // }
@@ -255,6 +260,7 @@ const smartExpressionWidget = computed(() => {
   .n-tabs {
     grid-column: 1 / span 1;
     grid-row: 1 / span 2;
+
   }
   .tutorial-wrapper {
     grid-column: 2 / span 1;
