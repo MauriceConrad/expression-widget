@@ -9,7 +9,7 @@ export const actions = ['delete', 'duplicate', 'moveNext', 'movePrev'];
 </script>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watchEffect } from 'vue'
 import { Expression as CoreExpression} from '@bluepic/core'
 import GeneralExpression from './GeneralExpression.vue'
 import IdentifierChain from './IdentifierChain.vue';
@@ -19,6 +19,11 @@ const props = defineProps<{
   active: boolean;
 }>();
 const emit = defineEmits(['update:identifier', 'select']);
+
+watchEffect(() => {
+  console.log('IDENTIFIER', props.identifier);
+  
+});
 
 const identifierSafe = computed(() => {
   return props.identifier.filter(identifier => identifier !== undefined) as (CoreExpression.SimpleExpressionIdentifierStatic | CoreExpression.SimpleExpressionIdentifierExpression)[];

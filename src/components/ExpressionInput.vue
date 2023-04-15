@@ -16,7 +16,7 @@
         <n-tag v-if="error" type="error" size="small" class="error-tooltip">
           [{{ error.index }}] {{ error.description  }}
         </n-tag>
-        <n-tabs type="segment" :size="('tiny' as any)" v-model:value="mode">
+        <n-tabs type="segment" :size="('tiny' as any)" v-model:value="mode" class="n-dialog-no-drag">
           <n-tab name="text">
             <n-icon>
               <code-outline />
@@ -29,13 +29,13 @@
           </n-tab>
         </n-tabs>
       </div>
-      <div ref="inputWrapperRef" class="input-wrapper" :class="{ hidden: mode === 'ux' }" />
-      <div v-if="mode === 'ux'" class="smart-wrapper">
+      <div ref="inputWrapperRef" class="input-wrapper n-dialog-no-drag" :class="{ hidden: mode === 'ux' }" />
+      <div v-if="mode === 'ux'" class="smart-wrapper n-dialog-no-drag">
         <ExpressionWidget v-if="expression" ref="expressionWidget" :model-value="expression" @update:model-value="syncCode" v-model:active-expression="activeExpression" :editable-handle="editableHandle" />
       </div>
     </div>
     <!-- <span style="color: #fff;">{{ activeExpression ?? 'NULL' }}</span> -->
-    <div v-show="activeExpression" class="autocomplete-wrapper">
+    <div v-show="activeExpression" class="autocomplete-wrapper n-dialog-no-drag">
       <AutocompleteView :model="autocomplete" v-model:selected="selected" :active-expression="realActiveExpression" @update:active-expression="onUpdateActiveExpression" :listen-to-keyboard="listenToKeyboard">
         <template v-if="slots.tutorial" #tutorial="{ selectedItem }">
           <slot name="tutorial" :selected-item="selectedItem" />
@@ -273,8 +273,10 @@ const selected = ref<number[]>([0]);
 
 
 const onUpdateActiveExpression = (newActiveExpression: CoreExpression.SimpleExpression) => {
+  
   if (activeExpression.value) {
     if (mode.value == 'ux') {
+
       if (expressionWidget.value && expressionWidget.value.expressionController) {
         expressionWidget.value.expressionController.replace(activeExpression.value, newActiveExpression); 
       }

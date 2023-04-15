@@ -2,7 +2,7 @@
   <div ref="wrapperRef" class="general-expression" :class="{ active, 'context-menu-active': showDropdown, 'dark-mode': isDarkMode, 'disabled': !isEnabled }" @contextmenu="handleContextmenu">
     <Operation v-if="modelValue.type === 'Operation'" :operands="modelValue.operands" :operator="modelValue.operator" :active="active" class="expression-component" :class="{ disabled: !isEnabled }" @select="handleSelect" />
     <Literal v-else-if="modelValue.type === 'Literal'" :raw="modelValue.raw" :value="modelValue.value" :active="active" class="expression-component" :class="{ disabled: !isEnabled }" @select="handleSelect" />
-    <Identifier v-else-if="modelValue.type === 'Identifier'" :identifier="modelValue.identifier" :active="active" class="expression-component" :class="{ disabled: !isEnabled }" @select="handleSelect" />
+    <Identifier v-else-if="modelValue.type === 'Identifier'" :state="localState" :identifier="modelValue.identifier" :active="active" class="expression-component" :class="{ disabled: !isEnabled }" @select="handleSelect" />
     <Call v-else-if="modelValue.type === 'Call'" :state="localState" :body="(modelValue as any).body" :identifier="(modelValue as any).identifier" :arguments="modelValue.arguments" :active="active" class="expression-component" :class="{ disabled: !isEnabled }" @select="handleSelect" @sortable:choose="handleSortableChoose" @sortable:unchoose="handleSortableUnchoose" @sortable:update="handleSortableUpdate" @sortable:add="handleSortableAdd" @sortable:remove="handleSortableRemove" />
     <Object v-else-if="modelValue.type === 'Object'" :properties="modelValue.properties" :active="active" class="expression-component" :class="{ disabled: !isEnabled }" @select="handleSelect" />
     <Array v-else-if="modelValue.type === 'Array'" :state="localState" :items="modelValue.items" :active="active" class="expression-component" :class="{ disabled: !isEnabled }" @select="handleSelect" />
@@ -140,13 +140,13 @@ const dropdownOptions = computed(() => {
       key: 'duplicate',
       label: 'Duplicate',
       icon: renderIcon(CopyOutline),
-      disabled: !parentExpression || parentExpression.type === 'Identifier'
+      disabled: !parentExpression
     },
     {
       key: 'delete',
       label: 'Delete',
       icon: renderIcon(TrashOutline),
-      disabled: !parentExpression || parentExpression.type === 'Identifier'
+      disabled: !parentExpression
     }
   ].filter(({ key, type }) => {
     if (type === 'divider') {
