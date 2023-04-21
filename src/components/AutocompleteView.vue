@@ -1,35 +1,67 @@
 <template>
   <div class="autocomplete-view" :class="{ 'dark-mode': isDarkMode }">
-    <n-tabs v-model:value="valueType" type="segment">
+    <!-- <n-tabs v-model:value="valueType" type="segment">
       <n-tab-pane name="identifier" tab="Identifier">
-        <div class="identifier-view-wrapper" :class="{ 'show-smart-expression-widget': smartExpressionWidget, 'show-actions': selectedItem?.type === 'expression' }">
-          <n-tabs :value="selctedItemPath[0]" @update:value="selctedItemPath = [$event]">
-            <n-tab-pane v-for="{ name, children }, index in tabs" :key="name" :tab="name" :name="index">
-              <div class="tab-inner">
-                <AutocompleteTree :items="children" class="autocomplete-tree" />
-              </div>
-            </n-tab-pane>
-          </n-tabs>
-          <div v-if="smartExpressionWidget" class="smart-expression-widget">
-            <component :is="smartExpressionWidget" :item="selectedItem" />
-          </div>
-          <div class="actions">
-            <n-space justify="end">
-              <n-button v-if="selectedItem?.type === 'expression'" type="default" round size="small" @click="handleUpdateClick">Update</n-button>
-            </n-space>
-          </div>
-          <div v-if="slots.tutorial" class="tutorial-wrapper">
-            <n-scrollbar>
-              <slot name="tutorial" :selected-item="selectedItem" />
-            </n-scrollbar>
-          </div>
-        </div>
+        
         
       </n-tab-pane>
       <n-tab-pane name="value" tab="Value">
         <ValueView :expression="activeExpression" @update:expression="onUpdateExpression" />
       </n-tab-pane>
+    </n-tabs> -->
+    <n-tabs v-model:value="subView" type="segment">
+      <n-tab name="functions" tab="Functions" />
+      <n-tab name="elements" tab="Elements" />
+      <n-tab name="variables" tab="Variables" />
+      <n-tab name="static" tab="Static Value" />
     </n-tabs>
+    <div class="pane" v-if="subView === 'functions' || subView === 'variables' || subView === 'elements'">
+      <div class="identifier-view-wrapper" :class="{ 'show-smart-expression-widget': smartExpressionWidget, 'show-actions': selectedItem?.type === 'expression' }">
+        <!-- <n-tabs :value="selctedItemPath[0]" @update:value="selctedItemPath = [$event]">
+          <n-tab-pane v-for="{ name, children }, index in tabs" :key="name" :tab="name" :name="index">
+            <div class="tab-inner">
+              <AutocompleteTree :items="children" class="autocomplete-tree" />
+            </div>
+          </n-tab-pane>
+        </n-tabs>
+        <div v-if="smartExpressionWidget" class="smart-expression-widget">
+          <component :is="smartExpressionWidget" :item="selectedItem" />
+        </div>
+        <div class="actions">
+          <n-space justify="end">
+            <n-button v-if="selectedItem?.type === 'expression'" type="default" round size="small" @click="handleUpdateClick">Update</n-button>
+          </n-space>
+        </div>
+        <div v-if="slots.tutorial" class="tutorial-wrapper">
+          <n-scrollbar>
+            <slot name="tutorial" :selected-item="selectedItem" />
+          </n-scrollbar>
+        </div> -->
+        <template v-for="{ name, children }, index in tabs" :key="name">
+          <div v-if="selctedItemPath[0] === index" class="identifier-subgroup-view">
+            <n-scrollbar>
+              <AutocompleteTree :items="children" class="autocomplete-tree" />
+            </n-scrollbar>
+          </div>
+        </template>
+        <div v-if="smartExpressionWidget" class="smart-expression-widget">
+          <component :is="smartExpressionWidget" :item="selectedItem" />
+        </div>
+        <div class="actions">
+          <n-space justify="end">
+            <n-button v-if="selectedItem?.type === 'expression'" type="default" round size="small" @click="handleUpdateClick">Update</n-button>
+          </n-space>
+        </div>
+        <div v-if="slots.tutorial" class="tutorial-wrapper">
+          <n-scrollbar>
+            <slot name="tutorial" :selected-item="selectedItem" />
+          </n-scrollbar>
+        </div>
+      </div>
+    </div>
+    <div v-else class="pane pane-static">
+      <ValueView :expression="activeExpression" @update:expression="onUpdateExpression" />
+    </div>
   </div>
 </template>
 
@@ -60,6 +92,7 @@ const isDarkMode = inject('isDarkMode') as Ref<boolean>;
 
 const valueType = ref<'identifier' | 'value'>('identifier');
 
+
 const tabs = computed(() => {
   const loop = (item: AutocompleteItem, path: number[]): AutocompleteItemWithPath => {
     return {
@@ -80,6 +113,19 @@ const tabs = computed(() => {
       children: item.children.map((item, index) => loop(item, [tabIndex, index]))
     }
   });
+});
+
+const subView = ref<'elements' | 'variables' | 'functions' | 'static'>('functions');
+watch(subView, () => {
+  if (subView.value === 'functions') {
+    selctedItemPath.value = [ 0 ]
+  }
+  else if (subView.value === 'elements') {
+    selctedItemPath.value = [ 1 ]
+  }
+  else if (subView.value === 'variables') {
+    selctedItemPath.value = [ 2 ]
+  }
 });
 
 
@@ -202,21 +248,23 @@ const smartExpressionWidget = computed(() => {
 .autocomplete-view {
   border-top: 1px solid rgba(0, 0, 0, 0.1);
   padding-top: 10px;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  
   .n-tabs {
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    width: 100%;
+    //overflow: hidden;
+    // display: flex;
+    // flex-direction: column;
+    // width: 100%;
     .n-tab-pane {
-      overflow: hidden;
-      display: flex;
-      flex-direction: row;
-      > .value-view {
-        flex: 1;
-      }
+      // overflow: hidden;
+      // display: flex;
+      // flex-direction: row;
+      // > .value-view {
+      //   flex: 1;
+      // }
 
       // .identifier-view-wrapper {
       //   flex: 1;
@@ -227,19 +275,32 @@ const smartExpressionWidget = computed(() => {
     }
   }
 }
+.pane {
+  overflow: hidden;
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  width: 100%;
+  // > .value-view {
+  //   flex: 1;
+  // }
+
+  // .identifier-view-wrapper {
+  //   flex: 1;
+  // }
+  // .tutorial-wrapper {
+  //   flex: none;
+  // }
+}
+.pane-static {
+  display: block;
+  width: 100%;
+}
 .autocomplete-view.dark-mode {
   border-top-color: rgb(255, 255, 255, 0.2);
 }
 .tab-inner {
-  --sub-menu-max-width: 300px;
-  --active-color: rgb(50, 101, 212);
-  --active-color-hover: rgba(0, 0, 0, 0.05);
-  --active-text-color: #fff;
-  --list-font-size: 0.9em;
-  //border: 1px solid #333;
-  .autocomplete-tree {
-    height: auto;
-  }
+  
 }
 .identifier-view-wrapper {
   // display: flex;
@@ -257,10 +318,18 @@ const smartExpressionWidget = computed(() => {
   > * {
     overflow: hidden;
   }
-  .n-tabs {
-    grid-column: 1 / span 1;
+  .identifier-subgroup-view {
     grid-row: 1 / span 2;
-
+    grid-column: 1 / span 1;
+    --sub-menu-max-width: 300px;
+    --active-color: rgb(50, 101, 212);
+    --active-color-hover: rgba(0, 0, 0, 0.05);
+    --active-text-color: #fff;
+    --list-font-size: 0.9em;
+    //border: 1px solid #333;
+    .autocomplete-tree {
+      height: auto;
+    }
   }
   .tutorial-wrapper {
     grid-column: 2 / span 1;
@@ -279,17 +348,17 @@ const smartExpressionWidget = computed(() => {
       pointer-events: all;
     }
   }
-  .n-tab-pane {
-    display: flex;
-    flex-direction: column;
-    .tab-inner {
-      overflow: scroll;
-      white-space: nowrap;
-    }
-    .tab-inner::-webkit-scrollbar {
-      display: none;
-    }
-  }
+  // .n-tab-pane {
+  //   display: flex;
+  //   flex-direction: column;
+  //   .tab-inner {
+  //     overflow: scroll;
+  //     white-space: nowrap;
+  //   }
+  //   .tab-inner::-webkit-scrollbar {
+  //     display: none;
+  //   }
+  // }
   .smart-expression-widget {
     grid-column: 2 / span 1;
     grid-row: 1 / span 1;

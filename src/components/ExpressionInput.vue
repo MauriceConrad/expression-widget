@@ -42,13 +42,24 @@
         </template>
       </AutocompleteView>
     </div>
+    <div v-if="!activeExpression" class="no-active-expression-wrapper">
+      <n-empty description="No expression identifier selected">
+        <template #icon>
+          <n-icon>
+            <svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 0 100 100" enable-background="new 0 0 100 100" xml:space="preserve">
+              <path d="M70.9,39.7c3.1,0,9.1-2.5,9.1-10.6c0-8.1-5.8-8.5-7.6-8.5c-3.6,0-7.1,2.6-10.2,7.9C59.1,34,55.6,40,55.6,40 l-0.1,0c-0.8-3.8-1.4-7-1.7-8.4C53.2,28.3,49.3,21,41.3,21c-8,0-15.3,4.6-15.3,4.6l0,0c-1.4,0.9-2.3,2.4-2.3,4.1 c0,2.7,2.2,4.9,4.9,4.9c0.8,0,1.5-0.2,2.1-0.5l0,0c0,0,6.1-3.4,7.4,0c0.4,1,0.7,2.2,1.1,3.4c1.6,5.2,3,11.4,4.2,17l-5.2,7.6 c0,0-5.9-2.1-9-2.1S20,62.5,20,70.6s5.8,8.5,7.6,8.5c3.6,0,7.1-2.6,10.2-7.9c3.1-5.5,6.6-11.5,6.6-11.5c1,5,1.9,9,2.4,10.6 c2,5.7,6.6,9.1,12.7,9.1c0,0,6.3,0,13.7-4.2c1.8-0.7,3.1-2.5,3.1-4.5c0-2.7-2.2-4.9-4.9-4.9c-0.8,0-1.5,0.2-2.1,0.5l0,0 c0,0-5.3,3-7.1,0.6c-1.3-2.5-2.4-5.7-3.2-9.7c-0.8-3.6-1.7-7.8-2.5-11.9l5.3-7.7C61.9,37.6,67.8,39.7,70.9,39.7z" />
+            </svg>
+          </n-icon>
+        </template>
+      </n-empty>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import CodeFlask from 'codeflask'
 import { onMounted, watch, ref, computed, Ref, reactive, watchEffect, provide, useSlots } from 'vue'
-import { NSwitch, NTabs, NTab, NIcon, useThemeVars, NTooltip, NTag } from 'naive-ui'
+import { NSwitch, NTabs, NTab, NIcon, useThemeVars, NTooltip, NEmpty, NTag } from 'naive-ui'
 import { EyeOutline, CodeOutline, AlertCircleOutline } from '@vicons/ionicons5'
 //import { ExpressionController, parseExpr, SimpleExpression, findClosestExpression, findExactMatchingExpression, SimpleExpressionCallWithName, SimpleExpressionIdentifier, SimpleExpressionIdentifierExpression, SimpleExpressionIdentifierStatic } from '../controllers/expression'
 //import jsep from 'jsep'
@@ -338,11 +349,17 @@ defineExpose({
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    paddb
+    height: 100%;
+
     .autocomplete-view {
       
       // box-sizing: border-box;
     }
+  }
+  .no-active-expression-wrapper {
+    display: grid;
+    place-items: center;
+    height: 120px;
   }
   .main-input-wrapper {
     display: grid;
