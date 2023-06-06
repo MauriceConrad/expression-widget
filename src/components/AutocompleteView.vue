@@ -9,7 +9,7 @@
         <ValueView :expression="activeExpression" @update:expression="onUpdateExpression" />
       </n-tab-pane>
     </n-tabs> -->
-    <n-tabs v-model:value="subView" type="segment">
+    <n-tabs v-model:value="subView" @update:value="handleManualUpdateSubview" type="segment">
       <n-tab name="functions" tab="Functions" />
       <n-tab name="elements" tab="Elements" />
       <n-tab name="variables" tab="Variables" />
@@ -90,9 +90,6 @@ const slots = useSlots();
 
 const isDarkMode = inject('isDarkMode') as Ref<boolean>;
 
-const valueType = ref<'identifier' | 'value'>('identifier');
-
-
 const tabs = computed(() => {
   const loop = (item: AutocompleteItem, path: number[]): AutocompleteItemWithPath => {
     return {
@@ -116,7 +113,7 @@ const tabs = computed(() => {
 });
 
 const subView = ref<'elements' | 'variables' | 'functions' | 'static'>('functions');
-watch(subView, () => {
+const handleManualUpdateSubview = () => {
   if (subView.value === 'functions') {
     selctedItemPath.value = [ 0 ]
   }
@@ -126,8 +123,7 @@ watch(subView, () => {
   else if (subView.value === 'variables') {
     selctedItemPath.value = [ 2 ]
   }
-});
-
+}
 
 const allAutocompleteItems = computed(() => {
   const collectChilds = (item: AutocompleteItemWithPath): AutocompleteItemWithPath[] => {
@@ -142,7 +138,7 @@ const allAutocompleteItems = computed(() => {
     }
   }
   return ([] as AutocompleteItemWithPath[]).concat(...tabs.value.map(tabItem => {
-    return ([] as AutocompleteItemWithPath[]).concat(...tabItem.children.map(collectChilds))
+    return ([] as AutocompleteItemWithPath[]).concat(...tabItem.children, ...tabItem.children.map(collectChilds))
   }))
 });
 
@@ -165,9 +161,7 @@ const {} = useAutocompleteShortcuts(selctedItemPath, tabs, computed(() => props.
 
 const activeExpression = toRef(props, 'activeExpression');
 const selectActiveExpressionWithinAutocompleteView = () => {
-  
   if (activeExpression.value?.type === 'Identifier' || activeExpression.value?.type === 'Call') {
-    valueType.value = 'identifier';
     const identifier = (activeExpression.value as CoreExpression.SimpleExpressionCallWithName | CoreExpression.SimpleExpressionIdentifier).identifier.filter(member => member !== undefined) as (CoreExpression.SimpleExpressionIdentifierExpression | CoreExpression.SimpleExpressionIdentifierStatic)[];
     try {
       const autocompleteIdentifier = expressionIdentifierToAutocompleteIdentifier(identifier);
@@ -176,9 +170,10 @@ const selectActiveExpressionWithinAutocompleteView = () => {
           return _.isEqual(item.identifier, autocompleteIdentifier);
         }
       });
-
       if (autocompleteExpression) {
         selctedItemPath.value = autocompleteExpression.path;
+        //console.log(selctedItemPath.value[0]);
+        
       }
 
     }
@@ -190,12 +185,25 @@ const selectActiveExpressionWithinAutocompleteView = () => {
     
   }
   else if (activeExpression.value?.type === 'Literal' || activeExpression.value?.type === 'Object') {
-    valueType.value = 'value';
+    subView.value = 'static';
     
   }
   
 }
 watch(activeExpression, selectActiveExpressionWithinAutocompleteView);
+
+watch(() => selctedItemPath.value[0], () => {
+  if (selctedItemPath.value[0] === 0) {
+    subView.value = 'functions';
+  }
+  else if (selctedItemPath.value[0] === 1) {
+    subView.value = 'elements';
+  }
+  else if (selctedItemPath.value[0] === 2) {
+    subView.value = 'variables';
+  }
+  
+})
 
 provide('activeExpression', activeExpression);
 
