@@ -13,6 +13,13 @@
           </template>
           ({{ error.index }}) {{  error.description  }}
         </n-tooltip> -->
+        <n-button circle tertiary :size="('tiny' as any)" @click="emit('close')">
+          <template #icon>
+            <n-icon>
+              <close-outline />
+            </n-icon>
+          </template>
+        </n-button>
         <n-tag v-if="error" type="error" size="small" class="error-tooltip">
           [{{ error.index }}] {{ error.description  }}
         </n-tag>
@@ -59,8 +66,8 @@
 <script setup lang="ts">
 import CodeFlask from 'codeflask'
 import { onMounted, watch, ref, computed, Ref, reactive, watchEffect, provide, useSlots } from 'vue'
-import { NSwitch, NTabs, NTab, NIcon, useThemeVars, NTooltip, NEmpty, NTag } from 'naive-ui'
-import { EyeOutline, CodeOutline, AlertCircleOutline } from '@vicons/ionicons5'
+import { NSwitch, NTabs, NTab, NIcon, useThemeVars, NTooltip, NEmpty, NTag, NButton } from 'naive-ui'
+import { EyeOutline, CodeOutline, CloseOutline } from '@vicons/ionicons5'
 //import { ExpressionController, parseExpr, SimpleExpression, findClosestExpression, findExactMatchingExpression, SimpleExpressionCallWithName, SimpleExpressionIdentifier, SimpleExpressionIdentifierExpression, SimpleExpressionIdentifierStatic } from '../controllers/expression'
 //import jsep from 'jsep'
 import ExpressionWidget from './ExpressionWidget.vue'
@@ -91,7 +98,7 @@ const props = withDefaults(defineProps<{
   editableHandle: () => true
 });
 
-const emit = defineEmits(['update:model-value', 'update:error']);
+const emit = defineEmits(['update:model-value', 'update:error', 'close']);
 
 const slots = useSlots();
 
