@@ -1,5 +1,5 @@
 <template>
-  <div class="autocomplete-view" :class="{ 'dark-mode': isDarkMode }">
+  <div class="autocomplete-view" :class="{ 'dark-mode': isDarkMode }" :data-selected-expression-identifier="selectedIdentifier">
     <!-- <n-tabs v-model:value="valueType" type="segment">
       <n-tab-pane name="identifier" tab="Identifier">
         
@@ -211,7 +211,7 @@ const onUpdateExpression = (activeExpression: CoreExpression.SimpleExpression) =
   emit('update:active-expression', activeExpression);
 }
 
-const replaceExpressionWithAutocompleteItem = (item: AutocompleteItemWithPath) => {
+const autocompleteItemToIdentifier = (item: AutocompleteItemWithPath) => {
   if (item.type === 'expression') {
     const funcArgs = (() => {
       if (item.expressionType === 'function') {
@@ -222,10 +222,14 @@ const replaceExpressionWithAutocompleteItem = (item: AutocompleteItemWithPath) =
       }
     })();
     
-    const identifier = autocompleteIdentifierToExpressionIdentifier(item.identifier, item.expressionType, funcArgs);
-    if (identifier) {
-      onUpdateExpression(identifier);
-    }
+    return autocompleteIdentifierToExpressionIdentifier(item.identifier, item.expressionType, funcArgs);
+  }
+}
+
+const replaceExpressionWithAutocompleteItem = (item: AutocompleteItemWithPath) => {
+  const identifier = autocompleteItemToIdentifier(item);
+  if (identifier) {
+    onUpdateExpression(identifier);
   }
 }
 provide('replaceExpressionWithAutocompleteItem', replaceExpressionWithAutocompleteItem);
@@ -248,6 +252,15 @@ const smartExpressionWidget = computed(() => {
   }
   else {
     return undefined;
+  }
+});
+
+const selectedIdentifier = computed(() => {
+  if (selectedItem.value?.type === 'expression') {
+    const identifier = autocompleteItemToIdentifier(selectedItem.value as AutocompleteItemWithPath) ;
+    if (identifier) {
+      return CoreExpression.ExpressionController.toString(identifier);
+    }
   }
 });
 </script>

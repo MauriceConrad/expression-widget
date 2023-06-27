@@ -31,7 +31,7 @@
     }
   },
   "dependencies": {
-    "@bluepic/core": "^0.1.7",
+    "@bluepic/core": "^0.1.42",
     "@vicons/ionicons5": "^0.12.0",
     "codeflask": "^1.4.1",
     "color": "^4.2.3",
