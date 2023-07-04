@@ -44,8 +44,8 @@
     <!-- <span style="color: #fff;">{{ activeExpression ?? 'NULL' }}</span> -->
     <div v-show="activeExpression" class="autocomplete-wrapper n-dialog-no-drag">
       <AutocompleteView :model="autocomplete" v-model:selected="selected" :active-expression="realActiveExpression" @update:active-expression="onUpdateActiveExpression" :listen-to-keyboard="listenToKeyboard">
-        <template v-if="slots.tutorial" #tutorial="{ selectedItem }">
-          <slot name="tutorial" :selected-item="selectedItem" />
+        <template v-if="slots.tutorial" #tutorial="{ selectedItem, subView }">
+          <slot name="tutorial" :selected-item="selectedItem" :sub-view="subView" />
         </template>
       </AutocompleteView>
     </div>

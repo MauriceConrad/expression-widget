@@ -17,26 +17,6 @@
     </n-tabs>
     <div class="pane" v-if="subView === 'functions' || subView === 'variables' || subView === 'elements'">
       <div class="identifier-view-wrapper" :class="{ 'show-smart-expression-widget': smartExpressionWidget, 'show-actions': selectedItem?.type === 'expression' }">
-        <!-- <n-tabs :value="selctedItemPath[0]" @update:value="selctedItemPath = [$event]">
-          <n-tab-pane v-for="{ name, children }, index in tabs" :key="name" :tab="name" :name="index">
-            <div class="tab-inner">
-              <AutocompleteTree :items="children" class="autocomplete-tree" />
-            </div>
-          </n-tab-pane>
-        </n-tabs>
-        <div v-if="smartExpressionWidget" class="smart-expression-widget">
-          <component :is="smartExpressionWidget" :item="selectedItem" />
-        </div>
-        <div class="actions">
-          <n-space justify="end">
-            <n-button v-if="selectedItem?.type === 'expression'" type="default" round size="small" @click="handleUpdateClick">Update</n-button>
-          </n-space>
-        </div>
-        <div v-if="slots.tutorial" class="tutorial-wrapper">
-          <n-scrollbar>
-            <slot name="tutorial" :selected-item="selectedItem" />
-          </n-scrollbar>
-        </div> -->
         <template v-for="{ name, children }, index in tabs" :key="name">
           <div v-if="selctedItemPath[0] === index" class="identifier-subgroup-view">
             <n-scrollbar>
@@ -54,7 +34,7 @@
         </div>
         <div v-if="slots.tutorial" class="tutorial-wrapper">
           <n-scrollbar>
-            <slot name="tutorial" :selected-item="selectedItem" />
+            <slot name="tutorial" :selected-item="selectedItem" :sub-view="subView" />
           </n-scrollbar>
         </div>
       </div>
