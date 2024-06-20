@@ -1,7 +1,7 @@
 {
   "name": "expression-widget",
   "private": false,
-  "version": "0.0.12",
+  "version": "0.0.13",
   "type": "module",
   "files": [
     "package.json",
@@ -31,7 +31,6 @@
     }
   },
   "dependencies": {
-    "@bluepic/core": "^0.1.42",
     "@vicons/ionicons5": "^0.12.0",
     "codeflask": "^1.4.1",
     "color": "^4.2.3",
@@ -41,11 +40,14 @@
     "is-var-name": "^2.0.0",
     "js-beautify": "^1.14.7",
     "lodash": "^4.17.21",
-    "naive-ui": "^2.34.2",
     "object-hash": "^3.0.0",
     "sortablejs": "^1.15.0",
-    "uniqid": "^5.4.0",
-    "vue": "^3.2.37"
+    "uniqid": "^5.4.0"
+  },
+  "peerDependencies": {
+    "vue": "^3.2.37",
+    "naive-ui": "^2.34.2",
+    "@bluepic/core": "^0.1.42"
   },
   "devDependencies": {
     "@types/codeflask": "^1.4.3",
