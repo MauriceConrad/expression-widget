@@ -15,7 +15,7 @@ export default defineConfig({
       formats: ["es", "umd" /*, 'cjs', 'amd', 'iife', 'system'*/],
     },
     rollupOptions: {
-      external: ["vue", "lodash", "naive-ui", "@bluepic/core"],
+      external: ["vue", "lodash", "naive-ui"],
       output: {
         sourcemap: false,
         // Provide global variables to use in the UMD build
